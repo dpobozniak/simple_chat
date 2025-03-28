@@ -23,3 +23,9 @@
 - can you quickly write high quality code
 - do you know how to work with LLMs (or can you learn quickly)?
 - how cool is your fun feature?
+
+## Submission instructions
+
+- fork the repo (eg. clone the repo and push it to your own version of on github)
+- make me a contributor to the repo!
+- send me an email with the repo once you're done, along with a short message about what your fun feature was and a short list of features you would add if you had more time
