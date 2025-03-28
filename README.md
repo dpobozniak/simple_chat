@@ -1,4 +1,4 @@
-# Simple Chat
+# Simple Chat Coding Challenge
 
 ## What is this?
 
