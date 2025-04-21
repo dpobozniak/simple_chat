@@ -1,5 +1,7 @@
 "use client";
 
+import { FormEvent, KeyboardEvent } from "react";
+
 interface StartViewProps {
   chatPartner: string;
   setChatPartner: (chatPartner: string) => void;
@@ -11,10 +13,31 @@ export const StartView = ({
   setChatPartner,
   handleStartChat,
 }: StartViewProps) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (chatPartner.trim()) {
+      handleStartChat();
+    }
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+
+      if (chatPartner.trim()) {
+        event.currentTarget.form?.requestSubmit();
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center gap-8 h-full text-white">
       <div className="text-2xl font-bold">Simple Chat</div>
-      <div className="flex flex-col items-center justify-center gap-2">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col items-center justify-center gap-2"
+      >
         <div className="text-md font-bold">who do you want to chat with?</div>
         <textarea
           rows={4}
@@ -32,14 +55,16 @@ export const StartView = ({
           placeholder="Describe your chat partner..."
           value={chatPartner}
           onChange={(e) => setChatPartner(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
-      </div>
-      <button
-        className="bg-neutral-800 px-4 py-2 text-lg rounded-lg border border-neutral-700 hover:bg-neutral-700"
-        onClick={handleStartChat}
-      >
-        Start Chat
-      </button>
+        <button
+          type="submit"
+          className="bg-neutral-800 px-4 py-2 text-lg rounded-lg border border-neutral-700 hover:bg-neutral-700"
+          disabled={!chatPartner.trim()}
+        >
+          Start Chat
+        </button>
+      </form>
     </div>
   );
 };
