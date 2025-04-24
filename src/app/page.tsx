@@ -3,11 +3,7 @@
 import { useState } from "react";
 import { StartView } from "./StartView";
 import { ChatView } from "./ChatView";
-
-interface Message {
-  role: string;
-  content: string;
-}
+import { Message } from "./types";
 
 enum View {
   START = "START",
@@ -30,45 +26,6 @@ export default function Home() {
     setView(View.CHAT);
   };
 
-  const handleSendMessage = async (userMessage: string) => {
-    if (!userMessage.trim()) return;
-
-    const newMessages = [...messages, { role: "user", content: userMessage }];
-    setMessages(newMessages);
-    setChatInput("");
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: newMessages,
-          chatPartner,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
-      const data = await response.json();
-      const assistantMessage = data.choices[0].message.content;
-
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: assistantMessage },
-      ]);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      alert("Failed to send message. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="w-full h-full">
       {view === View.START && (
@@ -81,10 +38,12 @@ export default function Home() {
       {view === View.CHAT && (
         <ChatView
           messages={messages}
+          chatPartner={chatPartner}
           chatInput={chatInput}
           setChatInput={setChatInput}
-          handleSendMessage={handleSendMessage}
+          setMessages={setMessages}
           isLoading={isLoading}
+          setIsLoading={setIsLoading}
         />
       )}
     </div>

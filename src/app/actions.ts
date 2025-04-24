@@ -1,16 +1,17 @@
-import { NextResponse } from "next/server";
+"use server";
 
-export async function POST(req: Request) {
+import { Message } from "./types";
+
+export async function sendMessage(
+  message: string,
+  messages: Message[],
+  chatPartner: string
+): Promise<Message> {
+  if (!message.trim()) {
+    throw new Error("Message cannot be empty");
+  }
+
   try {
-    const { messages, chatPartner } = await req.json();
-
-    if (!process.env.OPENROUTER_API_KEY) {
-      return NextResponse.json(
-        { error: "OpenRouter API key is not configured" },
-        { status: 500 }
-      );
-    }
-
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -27,6 +28,7 @@ export async function POST(req: Request) {
               content: `You are ${chatPartner}. Respond as this character would. Keep responses concise and engaging.`,
             },
             ...messages,
+            { role: "user", content: message },
           ],
         }),
       }
@@ -37,13 +39,12 @@ export async function POST(req: Request) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    return {
+      role: "assistant",
+      content: data.choices[0].message.content,
+    };
   } catch (error) {
     console.error("Chat API error:", error);
-    console.log("-------err", error);
-    return NextResponse.json(
-      { error: "Failed to process chat message" },
-      { status: 500 }
-    );
+    throw new Error("Failed to process chat message");
   }
 }

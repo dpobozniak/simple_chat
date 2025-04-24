@@ -1,38 +1,59 @@
 "use client";
 
-import { FormEvent, KeyboardEvent } from "react";
+import { KeyboardEvent, useTransition } from "react";
+import { sendMessage } from "./actions";
+import { Message } from "./types";
 
 interface ChatViewProps {
-  messages: { role: string; content: string }[];
-  handleSendMessage: (message: string) => void;
+  messages: Message[];
+  chatPartner: string;
   chatInput: string;
   setChatInput: (chatInput: string) => void;
+  setMessages: (messages: Message[]) => void;
   isLoading: boolean;
+  setIsLoading: (isLoading: boolean) => void;
 }
 
 export const ChatView = ({
   messages,
-  handleSendMessage,
+  chatPartner,
   chatInput,
   setChatInput,
+  setMessages,
   isLoading,
+  setIsLoading,
 }: ChatViewProps) => {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const message = chatInput.trim();
-
-    if (message && !isLoading) {
-      handleSendMessage(message);
-    }
-  };
+  const [isPending, startTransition] = useTransition();
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
 
-      if (chatInput.trim() && !isLoading) {
+      if (chatInput.trim() && !isLoading && !isPending) {
         event.currentTarget.form?.requestSubmit();
+      }
+    }
+  };
+
+  const handleFormSubmit = async (formData: FormData) => {
+    const message = formData.get("message") as string;
+    if (message?.trim() && !isLoading && !isPending) {
+      setIsLoading(true);
+      setChatInput("");
+
+      const newMessages = [...messages, { role: "user", content: message }];
+      setMessages(newMessages);
+
+      try {
+        startTransition(async () => {
+          const response = await sendMessage(message, messages, chatPartner);
+          setMessages([...newMessages, response]);
+        });
+      } catch (error) {
+        console.error("Error sending message:", error);
+        alert("Failed to send message. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -48,7 +69,7 @@ export const ChatView = ({
               content={message.content}
             />
           ))}
-          {isLoading && (
+          {(isLoading || isPending) && (
             <div className="flex gap-2 items-center">
               <div className="bg-blue-600 text-xs px-2 py-1 rounded">BOT</div>
               <div className="bg-neutral-800 p-4 rounded-lg max-w-[80%]">
@@ -59,21 +80,22 @@ export const ChatView = ({
         </div>
       </div>
       <div className="p-4 border-t border-neutral-800">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form action={handleFormSubmit} className="flex flex-col gap-4">
           <div className="flex gap-4">
             <textarea
+              name="message"
               className="flex-1 p-4 bg-neutral-800 border border-neutral-700 rounded-lg resize-none text-white focus:outline-none focus:ring-2 focus:ring-neutral-600"
               placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
               rows={3}
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={isLoading}
+              disabled={isLoading || isPending}
             />
             <button
               type="submit"
               className="px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-lg hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isLoading || !chatInput.trim()}
+              disabled={isLoading || isPending || !chatInput.trim()}
             >
               Send
             </button>
