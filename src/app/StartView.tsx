@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, KeyboardEvent } from "react";
+import { Avatar } from "./Avatar";
 
 interface StartViewProps {
   chatPartner: string;
@@ -36,9 +37,17 @@ export const StartView = ({
       <div className="text-2xl font-bold">Simple Chat</div>
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col items-center justify-center gap-2"
+        className="flex flex-col items-center justify-center gap-4"
       >
         <div className="text-md font-bold">who do you want to chat with?</div>
+
+        {chatPartner.trim() && (
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <Avatar characterName={chatPartner} size="large" />
+            <div className="text-sm text-neutral-400">{chatPartner}</div>
+          </div>
+        )}
+
         <textarea
           rows={4}
           className={`

@@ -3,6 +3,7 @@
 import { KeyboardEvent, useTransition } from "react";
 import { sendMessage } from "./actions";
 import { Message } from "./types";
+import { Avatar } from "./Avatar";
 
 interface ChatViewProps {
   messages: Message[];
@@ -67,11 +68,12 @@ export const ChatView = ({
               key={index}
               role={message.role}
               content={message.content}
+              characterName={chatPartner}
             />
           ))}
           {(isLoading || isPending) && (
             <div className="flex gap-2 items-center">
-              <div className="bg-blue-600 text-xs px-2 py-1 rounded">BOT</div>
+              <Avatar characterName={chatPartner} size="small" />
               <div className="bg-neutral-800 p-4 rounded-lg max-w-[80%]">
                 <div className="animate-pulse">Thinking...</div>
               </div>
@@ -106,20 +108,28 @@ export const ChatView = ({
   );
 };
 
-const ChatMessage = ({ role, content }: { role: string; content: string }) => {
+const ChatMessage = ({
+  role,
+  content,
+  characterName,
+}: {
+  role: string;
+  content: string;
+  characterName: string;
+}) => {
   return (
     <div
       className={`flex gap-2 items-center ${
         role === "user" ? "flex-row-reverse" : ""
       }`}
     >
-      <div
-        className={`${
-          role === "user" ? "bg-green-600" : "bg-blue-600"
-        } text-xs px-2 py-1 rounded`}
-      >
-        {role === "user" ? "YOU" : "BOT"}
-      </div>
+      {role === "user" ? (
+        <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center">
+          <span className="text-xs text-white">YOU</span>
+        </div>
+      ) : (
+        <Avatar characterName={characterName} size="small" />
+      )}
       <div className="bg-neutral-800 p-4 rounded-lg max-w-[80%] text-white">
         {content}
       </div>
